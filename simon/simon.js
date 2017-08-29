@@ -8,6 +8,9 @@
 //easy mode, adds a new colour every round to the array.
 // Checks each element of user choices to the comp array
 
+//at each tick it is already doing all the calculations. 
+//Need to make it one step per tick
+
 
 
 var roundArray = [];
@@ -68,13 +71,16 @@ function setup() {
   frameRate(60);
 
   ticks_shown = 50;
+  ticks_remaining = 50;
+
+  new_round_start = true;
 
 }
 
 function draw() {
   
   //game.draw();
-
+  background(230);
   fill(0);
   text("Simon", center_x - 42, 32);
   text("Round: ", center_x - 42, height-10);
@@ -83,24 +89,46 @@ function draw() {
   
   game.block_press();
   game.check_pattern();
- 
+  game.draw();
+
+  if (new_round_start){
+    if (ticks_remaining < 0){
+      game.simon_plays();
+      ticks_remaining = 50;
+    }
+    ticks_remaining = ticks_remaining - 1
+    
+  }
+  
 
 
   ticks_shown = ticks_shown -1;
   if (ticks_shown < 0){
-    background(230);
-    if (roundSlow){
 
-      game.draw();
+
+      
       game.reset_colour();
 
-    }
 
-    roundSlow = !roundSlow;
+
+
 
     ticks_shown = 50;
   }
-  line(0,ticks_shown,width,ticks_shown);
+
+  // for (i=0; i<this.simonArray.length;i++){
+  //     //sleep(500);
+  //     this.blocks[colourIndex[this.simonArray[i]]].press();
+     
+  //     console.log(i);
+  //     // setTimeout(function(){
+  //     //   snd_comp.play();
+  //     //   snd_comp.currentTime = 0;
+  //     // },2000);
+  //   }
+
+
+  // line(0,ticks_shown,width,ticks_shown);
   
 }
 
@@ -114,6 +142,7 @@ function Simon(blocks){
   this.blocks = blocks;
   this.round = 0;
   this.simonArray = [];
+  this.simon_clone_array = [];
 
   this.playRound = function(){
     
@@ -140,10 +169,12 @@ function Simon(blocks){
   this.newRound = function(){
     colourArray = ['red','green','blue','purple'];
     this.round ++;
+    new_round_start = true;
 
     this.simonArray.push(colourArray[Math.floor((Math.random() *(4)))]);
+    this.simon_clone_array = this.simonArray.slice(0);
 
-    this.playRound();
+    //this.playRound();
  
     //HARD MODE
     // for (i=0;i<this.round;i++){
@@ -193,6 +224,15 @@ function Simon(blocks){
     }
   }
 
+  this.simon_plays = function(){
+    if (this.simon_clone_array.length >= 1) {
+      this.blocks[colourIndex[this.simon_clone_array.shift()]].press();
+    }else{
+      new_round_start = false
+    }
+
+  }
+
   
   
   
@@ -236,10 +276,6 @@ function ColourBlock(colour){
           // console.log(roundArray);
       }
     }
-  
-     
-
-    
   }
 
   this.reset_colour = function(){
@@ -251,15 +287,10 @@ function ColourBlock(colour){
         console.log('beep');
         snd.play();
         snd.currentTime = 0;
-
         return true;
-
-      
       }else{
         return false;
       }
-
-    
   }
 
 
@@ -267,19 +298,9 @@ function ColourBlock(colour){
 
   this.press = function(){
     this.c = 'yellow';
-    //this.size ++;
     this.draw();
-    snd_comp.play();
-    
+    snd_comp.play();  
     snd_comp.currentTime=0;
-    //this.c = colourHash[this.colour];
-    // setTimeout(function(){
-
-    //   this.c = colourHash[this.colour];
-
-    // })
-    
-    
   }
 
 
