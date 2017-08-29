@@ -14,8 +14,16 @@
 
 
 var roundArray = [];
-var snd = new Audio("./simon_sounds.mp3");
-var snd_comp = new Audio("./simon_comp.mp3");
+// var snd = new Audio("./simon_sounds.mp3");
+// var snd_comp = new Audio("./simon_comp.mp3");
+
+// var sndi = new Audio("./simon_sounds_1.mp3");
+
+var snd1 = new Audio("./block_1.mp3");
+var snd2 = new Audio("./block_2.mp3");
+var snd3 = new Audio("./block_3.mp3");
+var snd4 = new Audio("./block_4.mp3");
+
 
 var colourIndex = {
       'red':0,
@@ -36,10 +44,10 @@ function setup() {
   default_block = new ColourBlock('');
   block_size = default_block.size;
 
-  red_block = new ColourBlock('red');
-  green_block = new ColourBlock('green');
-  blue_block =  new ColourBlock('blue');
-  purple_block = new ColourBlock('purple');
+  red_block = new ColourBlock('red',snd1);
+  green_block = new ColourBlock('green',snd2);
+  blue_block =  new ColourBlock('blue',snd3);
+  purple_block = new ColourBlock('purple',snd4);
 
   red_block.position(center_x-10-block_size,center_y-10-block_size);
   green_block.position((center_x+10),center_y-10-block_size);
@@ -70,8 +78,9 @@ function draw() {
   text("Simon", center_x - 42, 32);
   text("Round: ", center_x - 42, height-10);
 
-  text(ticks_remaining, 0, height-10);
-  text(ticks_shown, 60, height-10);
+  // Tick Show
+  // text(ticks_remaining, 0, height-10);
+  // text(ticks_shown, 60, height-10);
 
   text(game.round, center_x + 80, height-10);
   
@@ -80,31 +89,20 @@ function draw() {
   game.draw();
 
   if (new_round_start){
-    ticks_remaining = ticks_remaining - 1;
+    ticks_remaining = ticks_remaining - 1.1**game.round;
     if (ticks_remaining < 0){
       game.simon_plays();
       ticks_remaining = 60;
+      ticks_shown = 60;
     }
     
   }
-     
-  // Upgrade this!
   
+  ticks_shown = ticks_shown - 1.1**game.round;
   if (ticks_shown < 0){
     game.reset_colour();
     ticks_shown = 60;
   }
-  ticks_shown = ticks_shown - 1;
-
-  // if(block_pressed){
-  //   ticks_shown = ticks_shown - 1;
-  //   if (ticks_shown < 0){
-  //     game.reset_colour();
-  //     ticks_shown = 60;
-  //   }
-  // }else{
-  //   ticks_shown = 60;
-  // }
 }
 
 function mouseReleased(){
@@ -181,7 +179,7 @@ function Simon(blocks){
 }
 
 
-function ColourBlock(colour, sound=snd){
+function ColourBlock(colour, sound=snd1){
   var colourHash = {
   'red':'rgb(255,0,0)',
   'red':'rgb(255,0,0)',
