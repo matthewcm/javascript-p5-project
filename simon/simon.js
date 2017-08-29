@@ -17,25 +17,24 @@ var roundArray = [];
 var snd = new Audio("./simon_sounds.mp3");
 var snd_comp = new Audio("./simon_comp.mp3");
 
-var roundSlow = true;
 var colourIndex = {
       'red':0,
       'green':1,
       'blue':2,
       'purple':3
     };
+
 function setup() {
   createCanvas(400, 400);
   background(230);
-  
- 
+  textSize(32);
+  frameRate(60);
 
   center_x = (width/2);
   center_y = (height/2);
 
-  block_size = new ColourBlock('');
-  block_size = block_size.size;
-
+  default_block = new ColourBlock('');
+  block_size = default_block.size;
 
   red_block = new ColourBlock('red');
   green_block = new ColourBlock('green');
@@ -53,88 +52,63 @@ function setup() {
   blocks.push(blue_block);
   blocks.push(purple_block);
 
-  console.log(blocks);
-
-   game = new Simon(blocks);
-  textSize(32);
-  game.draw();
-
-  // setTimeout(function(){
-  //       game.draw();
-
-  //     },10000);
-
-
+  game = new Simon(blocks);
   game.newRound();
-  game.draw();
 
-  frameRate(60);
-
-  ticks_shown = 50;
-  ticks_remaining = 50;
+  ticks_shown = 60;
+  ticks_remaining = 60;
 
   new_round_start = true;
+  block_pressed = false;
 
 }
 
 function draw() {
-  
-  //game.draw();
   background(230);
+
   fill(0);
   text("Simon", center_x - 42, 32);
   text("Round: ", center_x - 42, height-10);
+
+  text(ticks_remaining, 0, height-10);
+  text(ticks_shown, 60, height-10);
+
   text(game.round, center_x + 80, height-10);
-  
   
   game.block_press();
   game.check_pattern();
   game.draw();
 
   if (new_round_start){
+    ticks_remaining = ticks_remaining - 1;
     if (ticks_remaining < 0){
       game.simon_plays();
-      ticks_remaining = 50;
+      ticks_remaining = 60;
     }
-    ticks_remaining = ticks_remaining - 1
     
   }
-  
-
-
-  ticks_shown = ticks_shown -1;
-  if (ticks_shown < 0){
-
-
-      
-      game.reset_colour();
-
-
-
-
-
-    ticks_shown = 50;
-  }
-
-  // for (i=0; i<this.simonArray.length;i++){
-  //     //sleep(500);
-  //     this.blocks[colourIndex[this.simonArray[i]]].press();
      
-  //     console.log(i);
-  //     // setTimeout(function(){
-  //     //   snd_comp.play();
-  //     //   snd_comp.currentTime = 0;
-  //     // },2000);
-  //   }
-
-
-  // line(0,ticks_shown,width,ticks_shown);
+  // Upgrade this!
   
+  if (ticks_shown < 0){
+    game.reset_colour();
+    ticks_shown = 60;
+  }
+  ticks_shown = ticks_shown - 1;
+
+  // if(block_pressed){
+  //   ticks_shown = ticks_shown - 1;
+  //   if (ticks_shown < 0){
+  //     game.reset_colour();
+  //     ticks_shown = 60;
+  //   }
+  // }else{
+  //   ticks_shown = 60;
+  // }
 }
 
 function mouseReleased(){
   game.roundStep();
-
 }
 
 
@@ -144,28 +118,6 @@ function Simon(blocks){
   this.simonArray = [];
   this.simon_clone_array = [];
 
-  this.playRound = function(){
-    
-
-    for (i=0; i<this.simonArray.length;i++){
-      //sleep(500);
-      this.blocks[colourIndex[this.simonArray[i]]].press();
-      setTimeout(function(){
-        this.draw();
-      },500)
-     
-      console.log(i);
-      // setTimeout(function(){
-      //   snd_comp.play();
-      //   snd_comp.currentTime = 0;
-      // },2000);
-    }
-
-    
-
-
-  }
-
   this.newRound = function(){
     colourArray = ['red','green','blue','purple'];
     this.round ++;
@@ -173,16 +125,9 @@ function Simon(blocks){
 
     this.simonArray.push(colourArray[Math.floor((Math.random() *(4)))]);
     this.simon_clone_array = this.simonArray.slice(0);
-
-    //this.playRound();
  
-    //HARD MODE
-    // for (i=0;i<this.round;i++){
-    //   this.simonArray.push(colourArray[Math.floor((Math.random() *(4)))]);
-    // }  
     console.log(this.simonArray)
     roundArray = [];
-    return true;
   }
 
   this.draw = function(){
@@ -206,6 +151,7 @@ function Simon(blocks){
     for (i=0;i<this.blocks.length;i++){
       if (this.blocks[i].isPressed()){
         roundArray.push(this.blocks[i].colour);
+        block_pressed = true;
         console.log(roundArray);
       }
     }
@@ -227,19 +173,15 @@ function Simon(blocks){
   this.simon_plays = function(){
     if (this.simon_clone_array.length >= 1) {
       this.blocks[colourIndex[this.simon_clone_array.shift()]].press();
+      block_pressed = true;
     }else{
       new_round_start = false
     }
-
   }
-
-  
-  
-  
 }
 
 
-function ColourBlock(colour){
+function ColourBlock(colour, sound=snd){
   var colourHash = {
   'red':'rgb(255,0,0)',
   'red':'rgb(255,0,0)',
@@ -249,16 +191,13 @@ function ColourBlock(colour){
   'yellow':'rgb(255,255,50)'
   }
 
-
   this.colour = colour
   this.c = colourHash[this.colour];
-
-
-
-
+  this.sound = sound;
   this.size = 150;
   this.x = 0;
   this.y = 0;
+
   this.draw = function (){
     fill(this.c);
     rect(this.x, this.y, this.size, this.size );
@@ -267,51 +206,36 @@ function ColourBlock(colour){
     this.x = x;
     this.y = y;
   }
+
   this.colourOnPress = function(){
     if (mouseIsPressed){
       if (((mouseX > this.x) && (mouseX <this.x+150)) && ((mouseY > this.y) && (mouseY < this.y+150))){
-          this.c = 'yellow';
-          this.draw();
-          // roundArray.push(colour);
-          // console.log(roundArray);
+        this.c = 'yellow';
       }
+    }
+  }
+
+  this.isPressed = function(){
+    if (((mouseX > this.x) && (mouseX <this.x+150)) && ((mouseY > this.y) && (mouseY < this.y+150))){
+      this.play_sound();
+      return true;
+    }else{
+      return false;
     }
   }
 
   this.reset_colour = function(){
     this.c = colourHash[this.colour];
+    block_pressed = false;
   }
-
-   this.isPressed = function(){
-      if (((mouseX > this.x) && (mouseX <this.x+150)) && ((mouseY > this.y) && (mouseY < this.y+150))){
-        console.log('beep');
-        snd.play();
-        snd.currentTime = 0;
-        return true;
-      }else{
-        return false;
-      }
-  }
-
-
-
 
   this.press = function(){
     this.c = 'yellow';
-    this.draw();
-    snd_comp.play();  
-    snd_comp.currentTime=0;
+    this.play_sound();
   }
 
-
-}
-
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
+  this.play_sound = function(){
+    this.sound.play()
+    this.sound.currentTime=0;
   }
 }
-
