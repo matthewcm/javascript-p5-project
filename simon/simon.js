@@ -6,6 +6,8 @@
 
 // Hard mode different colour array each round
 //easy mode, adds a new colour every round to the array.
+// Checks each element of user choices to the comp array
+
 
 
 var roundArray = [];
@@ -65,10 +67,12 @@ function setup() {
 
   frameRate(60);
 
+  ticks_shown = 50;
+
 }
 
 function draw() {
-  background(230);
+  
   //game.draw();
 
   fill(0);
@@ -76,8 +80,27 @@ function draw() {
   text("Round: ", center_x - 42, height-10);
   text(game.round, center_x + 80, height-10);
   
-  game.draw();
+  
   game.block_press();
+  game.check_pattern();
+ 
+
+
+  ticks_shown = ticks_shown -1;
+  if (ticks_shown < 0){
+    background(230);
+    if (roundSlow){
+
+      game.draw();
+      game.reset_colour();
+
+    }
+
+    roundSlow = !roundSlow;
+
+    ticks_shown = 50;
+  }
+  line(0,ticks_shown,width,ticks_shown);
   
 }
 
@@ -98,7 +121,11 @@ function Simon(blocks){
     for (i=0; i<this.simonArray.length;i++){
       //sleep(500);
       this.blocks[colourIndex[this.simonArray[i]]].press();
-      console.log(i)
+      setTimeout(function(){
+        this.draw();
+      },500)
+     
+      console.log(i);
       // setTimeout(function(){
       //   snd_comp.play();
       //   snd_comp.currentTime = 0;
@@ -137,6 +164,12 @@ function Simon(blocks){
       this.blocks[i].colourOnPress();
     }
   }
+
+  this.reset_colour = function(){
+    for (i=0;i<this.blocks.length;i++){
+      this.blocks[i].reset_colour();
+    }
+  }
   
   this.roundStep = function(){
     for (i=0;i<this.blocks.length;i++){
@@ -145,6 +178,9 @@ function Simon(blocks){
         console.log(roundArray);
       }
     }
+    
+  }
+  this.check_pattern = function(){
     if (roundArray.toString() ==this.simonArray.toString()){
       console.log('woop');
       this.newRound();
@@ -175,7 +211,7 @@ function ColourBlock(colour){
 
 
   this.colour = colour
-  this.c = colourHash[colour];
+  this.c = colourHash[this.colour];
 
 
 
@@ -200,7 +236,14 @@ function ColourBlock(colour){
           // console.log(roundArray);
       }
     }
-    this.c = colourHash[colour];
+  
+     
+
+    
+  }
+
+  this.reset_colour = function(){
+    this.c = colourHash[this.colour];
   }
 
    this.isPressed = function(){
@@ -224,10 +267,18 @@ function ColourBlock(colour){
 
   this.press = function(){
     this.c = 'yellow';
-    this.draw();  
+    //this.size ++;
+    this.draw();
     snd_comp.play();
+    
     snd_comp.currentTime=0;
-    this.c = colourHash[this.colour];
+    //this.c = colourHash[this.colour];
+    // setTimeout(function(){
+
+    //   this.c = colourHash[this.colour];
+
+    // })
+    
     
   }
 
